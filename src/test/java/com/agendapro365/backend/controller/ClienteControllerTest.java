@@ -1,84 +1,101 @@
 package com.agendapro365.backend.controller;
 
 import com.agendapro365.backend.dto.ClienteDTO;
-import com.agendapro365.backend.model.Rol;
-import com.agendapro365.backend.model.Usuario;
-import com.agendapro365.backend.repository.ProfesionalRepository;
-import com.agendapro365.backend.repository.UsuarioRepository;
-import com.agendapro365.backend.security.JwtUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.agendapro365.backend.service.ClienteService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.ResponseEntity;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.List;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+
 class ClienteControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    // No es real
+    @Mock
+    private ClienteService clienteService;
 
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private UsuarioRepository usuarioRepositorio;
-
-    @Autowired
-    private ProfesionalRepository profesionalRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    String token;
+    // Crea una instancia real
+    @InjectMocks
+    private ClienteController clienteController;
 
     @BeforeEach
     void setUp() {
-        profesionalRepository.deleteAllInBatch();
-     
-        // Delete all existing users
-        usuarioRepositorio.deleteAllInBatch();
-
-        // Create a test user with all required fields
-        Usuario usuario = new Usuario();
-        usuario.setNombre("admin");
-        usuario.setEmail("admin@example.com"); // NOT NULL column
-        usuario.setPassword(passwordEncoder.encode("admin123"));
-        usuario.setRol(Rol.ADMIN); // must match the role required by the endpoint
-
-        usuarioRepositorio.save(usuario);
-
-        // Generando token para admin
-        token = "Bearer "+ jwtUtil.generateToken(usuario.getEmail());
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void testCrearCliente() throws Exception {
-        // Create DTO for the new client
+    void testCrearCliente() {
         ClienteDTO dto = new ClienteDTO();
         dto.setNombre("Juan Pérez");
         dto.setEmail("juan@example.com");
 
-        // Perform POST request with HTTP Basic authentication
-        mockMvc.perform(post("/api/clientes")
-                        .header("Authorization", token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto))
-                        .with(httpBasic("admin@example.com", "admin123"))) // must match email
-                .andExpect(status().isOk()); // Expect 200 OK
+        when(clienteService.crearCliente(any(ClienteDTO.class))).thenReturn(dto);
+
+        ResponseEntity<ClienteDTO> response = clienteController.crearCliente(dto);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals("Juan Pérez", response.getBody().getNombre());
+        verify(clienteService, times(1)).crearCliente(any(ClienteDTO.class));
+    }
+
+    @Test
+    void testObtenerClientePorId() {
+        ClienteDTO dto = new ClienteDTO();
+        dto.setNombre("Ana Gómez");
+        dto.setEmail("ana@example.com");
+
+        when(clienteService.obtenerClientePorId(1L)).thenReturn(dto);
+
+        ResponseEntity<ClienteDTO> response = clienteController.obtenerClientePorId(1L);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals("Ana Gómez", response.getBody().getNombre());
+        verify(clienteService, times(1)).obtenerClientePorId(1L);
+    }
+
+    @Test
+    void testListarClientes() {
+        ClienteDTO dto1 = new ClienteDTO();
+        dto1.setNombre("Juan Pérez");
+        ClienteDTO dto2 = new ClienteDTO();
+        dto2.setNombre("Ana Gómez");
+
+        when(clienteService.listarClientes()).thenReturn(List.of(dto1, dto2));
+
+        ResponseEntity<List<ClienteDTO>> response = clienteController.listarClientes();
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(2, response.getBody().size());
+        verify(clienteService, times(1)).listarClientes();
+    }
+
+    @Test
+    void testActualizarCliente() {
+        ClienteDTO dto = new ClienteDTO();
+        dto.setNombre("Juan Actualizado");
+
+        when(clienteService.actualizarClienteDTO(eq(1L), any(ClienteDTO.class))).thenReturn(dto);
+
+        ResponseEntity<ClienteDTO> response = clienteController.actualizarCliente(1L, dto);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals("Juan Actualizado", response.getBody().getNombre());
+        verify(clienteService, times(1)).actualizarClienteDTO(eq(1L), any(ClienteDTO.class));
+    }
+
+    @Test
+    void testEliminarCliente() {
+        doNothing().when(clienteService).eliminarCliente(1L);
+
+        ResponseEntity<Void> response = clienteController.eliminarCliente(1L);
+
+        assertEquals(204, response.getStatusCode().value());
+        verify(clienteService, times(1)).eliminarCliente(1L);
     }
 }

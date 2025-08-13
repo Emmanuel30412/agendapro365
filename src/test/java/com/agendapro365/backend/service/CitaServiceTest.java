@@ -104,7 +104,7 @@ public class CitaServiceTest {
     void actualizarCita_exitoso() {
         when(citaRepository.findById(1L)).thenReturn(Optional.of(cita));
         when(clienteRepository.findById(1L)).thenReturn(Optional.of(cliente));
-        when(profesionalRepository.findById(2L)).thenReturn(Optional.of(profesional));
+        when(profesionalRepository.findById(1L)).thenReturn(Optional.of(profesional));
         when(citaRepository.save(any(Cita.class))).thenReturn(cita);
 
         CitaDTO result = citaService.actualizarCita(1L, citaDTO);

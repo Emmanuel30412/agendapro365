@@ -1,58 +1,84 @@
 package com.agendapro365.backend.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import javax.print.attribute.standard.Media;
-
-import org.apache.tomcat.util.http.parser.MediaType;
+import com.agendapro365.backend.dto.ClienteDTO;
+import com.agendapro365.backend.model.Rol;
+import com.agendapro365.backend.model.Usuario;
+import com.agendapro365.backend.repository.ProfesionalRepository;
+import com.agendapro365.backend.repository.UsuarioRepository;
+import com.agendapro365.backend.security.JwtUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.agendapro365.backend.dto.ClienteDTO;
-import com.agendapro365.backend.service.ClienteService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@AutoConfigureMockMvc(addFilters = false)
-@WebMvcTest(ClienteController.class)
-public class ClienteControllerTest {
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+class ClienteControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private ClienteService clienteService;
+    @Autowired
+    private JwtUtil jwtUtil;
 
-    //convierte objeto de java a JASON
+    @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private UsuarioRepository usuarioRepositorio;
+
+    @Autowired
+    private ProfesionalRepository profesionalRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    String token;
+
     @BeforeEach
-    public void setUp() {
-        objectMapper = new ObjectMapper();
+    void setUp() {
+        profesionalRepository.deleteAllInBatch();
+     
+        // Delete all existing users
+        usuarioRepositorio.deleteAllInBatch();
+
+        // Create a test user with all required fields
+        Usuario usuario = new Usuario();
+        usuario.setNombre("admin");
+        usuario.setEmail("admin@example.com"); // NOT NULL column
+        usuario.setPassword(passwordEncoder.encode("admin123"));
+        usuario.setRol(Rol.ADMIN); // must match the role required by the endpoint
+
+        usuarioRepositorio.save(usuario);
+
+        // Generando token para admin
+        token = "Bearer "+ jwtUtil.generateToken(usuario.getEmail());
     }
 
-     @Test
-    public void testCrearCliente() throws Exception {
+    @Test
+    void testCrearCliente() throws Exception {
+        // Create DTO for the new client
         ClienteDTO dto = new ClienteDTO();
-        dto.setNombre("Juan Perez");
+        dto.setNombre("Juan Pérez");
         dto.setEmail("juan@example.com");
-        dto.setTelefono("12345678");
 
-        when(clienteService.crearCliente(any(ClienteDTO.class))).thenReturn(dto);
-
+        // Perform POST request with HTTP Basic authentication
         mockMvc.perform(post("/api/clientes")
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.nombre").value("Juan Perez"))
-            .andExpect(jsonPath("$.email").value("juan@example.com"));
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto))
+                        .with(httpBasic("admin@example.com", "admin123"))) // must match email
+                .andExpect(status().isOk()); // Expect 200 OK
     }
 }

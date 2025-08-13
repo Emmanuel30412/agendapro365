@@ -12,7 +12,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.agendapro365.backend.security.JwtFilter;
-import com.agendapro365.backend.security.MyUserDetailsService;
 
 @Configuration
 @EnableWebSecurity

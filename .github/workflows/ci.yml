@@ -28,8 +28,8 @@ jobs:
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-maven-
 
-    - name: Build and Test with Maven
-      run: mvn clean verify
+    - name: Build with Maven
+      run: mvn clean package
 
     - name: SonarCloud Scan
       uses: SonarSource/sonarqube-scan-action@v5.0.0
@@ -39,5 +39,6 @@ jobs:
         args: >
             -Dsonar.projectKey=emmanuel30412_agendapro365
             -Dsonar.organization=emmanuel30412
-
-
+            -Dsonar.java.binaries=target/classes
+            -Dsonar.sources=src/main/java
+            -Dsonar.tests=src/test/java

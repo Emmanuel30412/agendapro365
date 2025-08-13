@@ -1,26 +1,32 @@
+# Nombre del WorkFlow
 name: CI - Java Spring Boot
 
+# Cuando se va a ejecutar
 on:
   push:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
 
+# Que trabajo debe hacerse
 jobs:
   build:
-
+    # Maquina a usar sera ubuntu la ultima version
     runs-on: ubuntu-latest
 
     steps:
+      # Trae tu codigo de Github a la maquina virtual
     - name: Checkout repository
       uses: actions/checkout@v3
 
+      # Instala java 17 en la maquina virtual, necesario para compilar codigo
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
         java-version: '17'
         distribution: 'temurin'
 
+    # Guarda las librerias de Maven en cache para no descargarlas otra vez    
     - name: Cache Maven packages
       uses: actions/cache@v3
       with:
@@ -28,6 +34,8 @@ jobs:
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-maven-
 
+    # Convierte archivos .java a .class  - Compila codigo 
+    # Esto se ejecuta dentro de la maquina virtual  
     - name: Build with Maven
       run: mvn clean package
 

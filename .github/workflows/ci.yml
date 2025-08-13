@@ -38,6 +38,6 @@ jobs:
       with:
         args: >
             -Dsonar.projectKey=emmanuel30412_agendapro365
-            -Dsonar.organization=Emmanuel30412
+            -Dsonar.organization=emmanuel30412
 
 

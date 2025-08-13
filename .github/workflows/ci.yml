@@ -37,7 +37,7 @@ jobs:
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         args: >
-            -Dsonar.projectKey=agendapro365
+            -Dsonar.projectKey=emmanuel30412_agendapro365
             -Dsonar.organization=Emmanuel30412
 
 

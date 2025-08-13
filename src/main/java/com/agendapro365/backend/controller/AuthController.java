@@ -38,5 +38,12 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(jwtToken));
     }
 
+    public void malasPracticaProbarSonarCloud() {
+       // Probando sonar Cloud valores sin usar
+        int a = 1;
+        int b = 2;
+        int c = 3;
+        int d = 4;
+    }
 
 }

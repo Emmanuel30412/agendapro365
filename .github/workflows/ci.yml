@@ -42,5 +42,4 @@ jobs:
        with:
          projectkey: emmanuel30412
          organization: Emmanuel30412
-         token: ${{'7a4357a3af81a19a939478ad1706c4adc2da0dc0'}}
-      
+         token: ${{ secrets.SONAR_TOKEN }}      

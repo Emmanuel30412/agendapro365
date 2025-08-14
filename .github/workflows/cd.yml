@@ -1,0 +1,56 @@
+# Nombramos nuestro workflow dentro de Github actions
+# Util para identificar nuestro pipeline
+name: CI/CD - AgendaPro365
+
+# Lo ejecutamos cada vez que hacemos push la rama main.
+# Exige que cada cambio pase por CI/CD antes de estar en produccion
+on:
+  push:
+    branches: [main]
+
+# Definimos un job llamado 'build-and-deploy' que se ejecuta en un servidor virtual
+# de ubuntu     
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+# Trae el codigo del repositorio de github a la maquina virtual, sino no tendriamos
+# codigo para compilar.
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+# Instala Java 17 en la maquina virtual usando la distribucion temurin
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+# Guarda en cache las dependencias de Maven descargadas anteriormente
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+
+# Compila el proyecto con Maven y genera el archivo .jar listo para ejecutar
+    - name: Build backend
+      run: mvn clean package -DskipTests=false
+
+# Ejecuta todo los tests unitarios
+    - name: Run tests
+      run: mvn test
+
+ # Instala la CLI de Railway en la maquina virtual del workflow , de lo contrario
+ # no podriamos subir el proyecto a Railway   
+    - name: Install Railway CLI
+      run: curl -sSL https://railway.app/install.sh | sh
+
+# Usamos el token de Railway(Guardado como secret en github) para autenticarse
+    - name: Deploy to Railway
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      run: |
+        railway login --ci
+        railway up

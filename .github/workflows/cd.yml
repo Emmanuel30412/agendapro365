@@ -51,5 +51,4 @@ jobs:
           PGUSER: ${{ secrets.PGUSER }}
           PGPASSWORD: ${{ secrets.PGPASSWORD }}
       run: | 
-        railway up
-
+       railway up --service backend

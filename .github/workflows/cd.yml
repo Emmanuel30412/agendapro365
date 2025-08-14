@@ -43,7 +43,5 @@ jobs:
 # Usamos el token de Railway(Guardado como secret en github) para autenticarse
     - name: Deploy to Railway
       env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      run: |
-        echo $RAILWAY_TOKEN | railway login
-        railway up
+       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+       run: railway up --token $RAILWAY_TOKEN

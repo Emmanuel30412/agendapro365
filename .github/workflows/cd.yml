@@ -50,4 +50,7 @@ jobs:
           PGDATABASE: ${{ secrets.PGDATABASE }}
           PGUSER: ${{ secrets.PGUSER }}
           PGPASSWORD: ${{ secrets.PGPASSWORD }}
-      run: railway up --token $RAILWAY_TOKEN
+      run: | 
+        railway login
+        railway up
+

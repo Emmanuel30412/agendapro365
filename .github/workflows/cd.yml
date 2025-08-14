@@ -1,6 +1,6 @@
 # Nombramos nuestro workflow dentro de Github actions
 # Util para identificar nuestro pipeline
-name: CI/CD - AgendaPro365
+name: CD - AgendaPro365
 
 # Lo ejecutamos cada vez que hacemos push la rama main.
 # Exige que cada cambio pase por CI/CD antes de estar en produccion
@@ -11,7 +11,7 @@ on:
 # Definimos un job llamado 'build-and-deploy' que se ejecuta en un servidor virtual
 # de ubuntu     
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
 # Trae el codigo del repositorio de github a la maquina virtual, sino no tendriamos
@@ -26,13 +26,6 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-
-# Guarda en cache las dependencias de Maven descargadas anteriormente
-    - name: Cache Maven dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
 # Compila el proyecto con Maven y genera el archivo .jar listo para ejecutar
     - name: Build backend

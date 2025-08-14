@@ -51,4 +51,4 @@ jobs:
           PGUSER: ${{ secrets.PGUSER }}
           PGPASSWORD: ${{ secrets.PGPASSWORD }}
       run: | 
-       railway up --service backend
+       railway up --service backend AgendaPro365

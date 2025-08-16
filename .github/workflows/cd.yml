@@ -52,3 +52,6 @@ jobs:
           PGPASSWORD: ${{ secrets.PGPASSWORD }}
       run: | 
        railway up --service agendapro365
+
+
+       
